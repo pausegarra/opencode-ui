@@ -26,6 +26,11 @@
     }
   },
   "bundle": {
+    "icon": [
+      "../assets/icons/linux/hicolor/512x512/apps/opencode-ui.png",
+      "../assets/icons/macos/AppIcon.icns",
+      "../assets/icons/windows/app.ico"
+    ],
     "active": true,
     "createUpdaterArtifacts": true
   },
