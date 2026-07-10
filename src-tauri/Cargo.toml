@@ -1,6 +1,6 @@
 [package]
 name = "opencode-ui"
-version = "1.0.0"
+version = "1.0.1"
 description = "Desktop shell for the local OpenCode web UI"
 authors = ["pausegarra"]
 license = "MIT"
