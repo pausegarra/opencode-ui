@@ -62,6 +62,9 @@ jobs:
       - name: Install UI dependencies
         run: npm ci
 
+      - name: Generate Tauri icons
+        run: npm run tauri icon src-tauri/icons/icon.png -- --output src-tauri/icons
+
       - name: Build and upload Tauri release
         uses: tauri-apps/tauri-action@v0
         env:
