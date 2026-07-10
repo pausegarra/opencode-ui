@@ -9,6 +9,7 @@ use std::{
   time::{Duration, Instant},
 };
 use tauri::{AppHandle, Emitter, Manager, WindowEvent};
+use tauri_plugin_updater::UpdaterExt;
 use tokio::{
   io::{AsyncBufReadExt, BufReader},
   process::{Child, Command},
@@ -667,6 +668,43 @@ fn cleanup(app: &AppHandle) {
   let _ = tauri::async_runtime::block_on(async move { shutdown_process(state).await });
 }
 
+fn spawn_update_check(app: AppHandle) {
+  tauri::async_runtime::spawn(async move {
+    let updater = match app.updater() {
+      Ok(updater) => updater,
+      Err(err) => {
+        emit_log(&app, "stderr", format!("update checker unavailable: {err}"));
+        return;
+      }
+    };
+
+    match updater.check().await {
+      Ok(Some(update)) => {
+        emit_log(&app, "stdout", format!("update available: {} -> {}", update.current_version, update.version));
+
+        if let Err(err) = update
+          .download_and_install(
+            |_, _| {},
+            || {},
+          )
+          .await
+        {
+          emit_log(&app, "stderr", format!("update install failed: {err}"));
+          return;
+        }
+
+        app.restart();
+      }
+      Ok(None) => {
+        emit_log(&app, "stdout", "no update available".to_string());
+      }
+      Err(err) => {
+        emit_log(&app, "stderr", format!("update check failed: {err}"));
+      }
+    }
+  });
+}
+
 fn main() {
   let config = load_config();
   let client = reqwest::Client::builder()
@@ -690,9 +728,11 @@ fn main() {
       let port = config.port;
       let handle = app.handle();
       emit_status(handle, "checking", "Checking OpenCode", Some(format!("Local server target: {}.", local_url(port))));
+      spawn_update_check(app.handle().clone());
       Ok(())
     })
     .plugin(tauri_plugin_dialog::init())
+    .plugin(tauri_plugin_updater::Builder::new().build())
     .on_window_event(|window, event| {
       if matches!(event, WindowEvent::CloseRequested { .. }) {
         cleanup(&window.app_handle());
