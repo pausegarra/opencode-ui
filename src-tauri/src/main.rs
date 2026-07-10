@@ -727,6 +727,8 @@ fn main() {
       let config = app.state::<AppState>().inner.blocking_lock().config.clone();
       let port = config.port;
       let handle = app.handle();
+      #[cfg(desktop)]
+      handle.plugin(tauri_plugin_window_state::Builder::default().build())?;
       emit_status(handle, "checking", "Checking OpenCode", Some(format!("Local server target: {}.", local_url(port))));
       spawn_update_check(app.handle().clone());
       Ok(())
