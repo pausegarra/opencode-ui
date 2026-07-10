@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>OpenCode UI</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+    <script type="module" src="/src/main.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="card">
+        <div class="brand">
+          <div class="mark"></div>
+          <div>
+            <p class="eyebrow">Desktop shell</p>
+            <h1>OpenCode UI</h1>
+          </div>
+        </div>
+
+        <div class="status-row">
+          <span class="status-pill" id="phase-pill">Starting</span>
+          <p class="status-copy" id="status-copy">Preparing OpenCode…</p>
+        </div>
+
+        <div class="progress-track" aria-hidden="true">
+          <span class="progress-fill" id="progress-fill"></span>
+        </div>
+
+        <p class="detail" id="detail-copy">
+          Waiting for the local OpenCode server to answer on 127.0.0.1.
+        </p>
+
+        <div class="log-panel">
+          <div class="log-header">
+            <span>Logs</span>
+            <button class="link-button" id="toggle-logs" type="button">
+              Hide
+            </button>
+          </div>
+          <pre class="logs" id="logs"></pre>
+        </div>
+
+        <div class="error-panel hidden" id="error-panel">
+          <h2>OpenCode did not start</h2>
+          <p id="error-message"></p>
+
+          <label class="field">
+            <span>Custom OpenCode path</span>
+            <input
+              id="binary-path"
+              type="text"
+              spellcheck="false"
+              placeholder="/opt/homebrew/bin/opencode"
+            />
+          </label>
+
+          <div class="actions">
+            <button id="retry-button" type="button">Retry</button>
+            <button id="use-path-button" type="button" class="secondary">
+              Use path
+            </button>
+            <button id="browse-button" type="button" class="secondary">
+              Browse
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
