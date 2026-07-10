@@ -14,6 +14,7 @@
     "windows": [
       {
         "title": "OpenCode UI",
+        "visible": false,
         "width": 1100,
         "height": 760,
         "resizable": true,

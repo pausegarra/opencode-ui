@@ -1,1 +1,1 @@
-{"default":{"identifier":"default","description":"Default capability for the OpenCode UI window","local":true,"windows":["main"],"permissions":["core:default","dialog:default","updater:default"]}}
+{"default":{"identifier":"default","description":"Default capability for the OpenCode UI window","local":true,"windows":["main"],"permissions":["core:default","dialog:default","updater:default","window-state:default"]}}

@@ -20,6 +20,9 @@ const phases = {
   checking: { label: 'Checking', width: '20%' },
   resolving: { label: 'Locating', width: '35%' },
   starting: { label: 'Starting', width: '55%' },
+  downloading: { label: 'Updating', width: '60%' },
+  installing: { label: 'Installing', width: '80%' },
+  restarting: { label: 'Restarting', width: '95%' },
   waiting: { label: 'Waiting', width: '75%' },
   ready: { label: 'Ready', width: '100%' },
   error: { label: 'Error', width: '12%' }

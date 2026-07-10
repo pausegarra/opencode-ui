@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "Default capability for the OpenCode UI window",
   "windows": ["main"],
-  "permissions": ["core:default", "dialog:default", "updater:default"]
+  "permissions": ["core:default", "dialog:default", "updater:default", "window-state:default"]
 }
