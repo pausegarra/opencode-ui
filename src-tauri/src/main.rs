@@ -7,7 +7,9 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
-use tauri::{AppHandle, Emitter, Manager, WindowEvent};
+use tauri::plugin::{Builder as PluginBuilder, TauriPlugin};
+use tauri::{AppHandle, Emitter, Manager, Url, WindowEvent};
+use tauri_plugin_opener::OpenerExt;
 use tauri_plugin_updater::UpdaterExt;
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
@@ -116,6 +118,51 @@ async fn set_binary_path(path: String, state: tauri::State<'_, AppState>) -> Res
 
 fn default_port() -> u16 {
     DEFAULT_PORT
+}
+
+fn same_origin(left: &Url, right: &Url) -> bool {
+    left.scheme() == right.scheme()
+        && left.host_str() == right.host_str()
+        && left.port_or_known_default() == right.port_or_known_default()
+}
+
+fn is_opencode_web_url(url: &Url) -> bool {
+    matches!(url.scheme(), "http" | "https")
+        && matches!(url.host_str(), Some("127.0.0.1") | Some("localhost"))
+        && url.port_or_known_default() == Some(DEFAULT_PORT)
+}
+
+fn is_app_frontend_url(url: &Url) -> bool {
+    matches!(url.scheme(), "tauri" | "file")
+        || (matches!(url.scheme(), "http" | "https")
+            && matches!(url.host_str(), Some("127.0.0.1") | Some("localhost"))
+            && url.port_or_known_default() == Some(5173))
+}
+
+fn external_links_plugin<R: tauri::Runtime>() -> TauriPlugin<R> {
+    PluginBuilder::new("external-links")
+        .on_navigation(|webview, url| {
+            let current_url = webview.url().ok();
+            let allow_in_app = current_url
+                .as_ref()
+                .is_some_and(|current| same_origin(current, url))
+                || is_opencode_web_url(url)
+                || current_url
+                    .as_ref()
+                    .map_or(true, |current| current.as_str() == "about:blank")
+                    && is_app_frontend_url(url);
+
+            if allow_in_app {
+                return true;
+            }
+
+            let _ = webview
+                .app_handle()
+                .opener()
+                .open_url(url.as_str(), None::<&str>);
+            false
+        })
+        .build()
 }
 
 fn config_file_path() -> Option<PathBuf> {
@@ -822,6 +869,8 @@ fn main() {
     let builder = builder;
 
     builder
+        .plugin(tauri_plugin_opener::init())
+        .plugin(external_links_plugin())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .on_window_event(|window, event| {
