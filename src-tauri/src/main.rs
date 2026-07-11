@@ -9,6 +9,7 @@ use std::{
 };
 use tauri::plugin::{Builder as PluginBuilder, TauriPlugin};
 use tauri::{AppHandle, Emitter, Manager, Url, WindowEvent};
+use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 use tauri_plugin_opener::OpenerExt;
 use tauri_plugin_updater::UpdaterExt;
 use tokio::{
@@ -749,6 +750,10 @@ fn cleanup(app: &AppHandle) {
     let _ = tauri::async_runtime::block_on(async move { shutdown_process(state).await });
 }
 
+fn update_prompt_message(current_version: &str, new_version: &str) -> String {
+    format!("OpenCode UI update available: {current_version} -> {new_version}. Install now?")
+}
+
 fn spawn_update_check(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
         let updater = match app.updater() {
@@ -769,6 +774,25 @@ fn spawn_update_check(app: AppHandle) {
                         update.current_version, update.version
                     ),
                 );
+
+                let should_install = app
+                    .dialog()
+                    .message(update_prompt_message(
+                        &update.current_version,
+                        &update.version,
+                    ))
+                    .title("OpenCode UI update available")
+                    .buttons(MessageDialogButtons::OkCancelCustom(
+                        "Update now".to_string(),
+                        "Not now".to_string(),
+                    ))
+                    .blocking_show();
+
+                if !should_install {
+                    emit_log(&app, "stdout", "update skipped by user".to_string());
+                    return;
+                }
+
                 emit_status(
                     &app,
                     "downloading",
@@ -881,4 +905,19 @@ fn main() {
         .invoke_handler(tauri::generate_handler![bootstrap, set_binary_path])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn update_prompt_message_names_current_and_new_versions() {
+        let message = update_prompt_message("1.0.0", "1.0.1");
+
+        assert_eq!(
+            message,
+            "OpenCode UI update available: 1.0.0 -> 1.0.1. Install now?"
+        );
+    }
 }
